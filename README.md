@@ -4,9 +4,10 @@ Backend REST para el control de reservas y disponibilidad de profesionales en un
 centro de servicios (psicologia, mentorias, asesorias, tutorias). Trabajo final
 del curso de Quarkus de MitoCode.
 
-> **Estado**: en desarrollo. Implementado hasta ahora: CRUD de Profesional y
-> Cliente, registro de Horarios Disponibles con validacion de solapamiento.
-> Pendiente: Reserva (crear/cancelar/consultas) y coleccion de Postman.
+> **Estado**: completo respecto al enunciado. CRUD de Profesional y Cliente,
+> Horarios Disponibles con validacion de solapamiento, Reserva (crear/cancelar
+> con todas sus reglas de negocio), las 2 consultas de profesionales, coleccion
+> de Postman, logs estructurados y SmallRye Fault Tolerance.
 
 ## Stack
 
@@ -72,6 +73,15 @@ contenedor.
 Los tests de endpoints (`@QuarkusTest` + RestAssured) tambien usan Dev
 Services, asi que necesitan Docker disponible.
 
+### Coleccion de Postman
+
+`postman/EF_Quarkus_Reservas.postman_collection.json` cubre los 8 endpoints
+principales, agrupados por contexto (Profesional, Cliente, HorarioDisponible,
+Reserva). Las requests de creacion capturan automaticamente el id creado en
+variables de coleccion (`profesionalId`, `clienteId`, `reservaId`) para
+encadenar los siguientes pasos sin copiar/pegar UUIDs a mano. Importarla en
+Postman e invocar contra `{{base_url}}` (por defecto `http://localhost:8080`).
+
 ### Empaquetado
 
 ```shell script
@@ -89,8 +99,7 @@ docker build -f src/main/docker/Dockerfile.native -t ef-quarkus-reservas-native 
   desarrollo.
 - **`RangoHorario`** (value object en `shared.domain`) encapsula la logica de
   solapamiento/cobertura de intervalos horarios, reutilizada por
-  `HorarioDisponible` y (mas adelante) `Reserva` para no duplicar el
-  algoritmo.
+  `HorarioDisponible` y `Reserva` para no duplicar el algoritmo.
 - **Sin `@Embeddable` para `RangoHorario`**: para evitar riesgos de
   compatibilidad entre records de Java y Hibernate Reactive, `horaInicio`/
   `horaFin` se guardan como columnas planas y `getRango()` es un getter
@@ -109,3 +118,28 @@ docker build -f src/main/docker/Dockerfile.native -t ef-quarkus-reservas-native 
 - **TDD estricto**: cada pieza de dominio y cada endpoint se escribio primero
   como test en rojo, y recien despues la implementacion minima para ponerlo en
   verde.
+- **Eliminar Profesional/Cliente es un soft-delete** (`DELETE` invoca el
+  `desactivar()` de dominio y persiste), nunca un borrado fisico: `Reserva` y
+  `HorarioDisponible` tienen FK hacia ambos, y la regla de negocio ya exige
+  que cliente y profesional esten activos al crear una reserva. Un hard
+  delete rompería el historial de reservas pasadas.
+- **Consultas de profesionales** (`GET /profesionales` ordenado desc por
+  reservas activas, `GET /reservas` agrupado por fecha) se resuelven
+  cargando las colecciones completas via Panache y procesando el conteo/
+  agrupamiento en memoria con `Stream`/`Collectors.groupingBy`, tal como pide
+  el enunciado — no con una query SQL de agregacion.
+- **`@Timeout` de SmallRye Fault Tolerance protege una lectura
+  (`ProfesionalService.listarOrdenadosPorReservasActivas`), nunca la
+  escritura de `ReservaService.crear`**: para un metodo que retorna `Uni`,
+  el timeout cancela la *suscripcion* del lado cliente al expirar, pero el
+  driver reactivo de Postgres no soporta cancelar una escritura ya enviada
+  al servidor. Protegiendo una escritura, un timeout podria devolver error
+  al cliente mientras la reserva se crea igual en la base ("reserva
+  fantasma"). Protegiendo una lectura, un timeout nunca deja estado a medio
+  escribir. `TimeoutExceptionMapper` traduce el `TimeoutException` resultante
+  a un 503 explicito en vez de dejar que caiga al 500 generico de Quarkus.
+- **Logs estructurados**: `LoggingFilter` (JAX-RS `ContainerRequestFilter` +
+  `ContainerResponseFilter`) loguea entrada y salida de cada request,
+  adjuntando `httpMethod`/`httpPath`/`httpStatus`/`durationMs` via MDC antes
+  de la linea de salida — Quarkus los serializa como JSON estructurado en
+  produccion (`quarkus.log.console.json=true`).
