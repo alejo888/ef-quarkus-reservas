@@ -1,0 +1,166 @@
+{
+  "info": {
+    "name": "EF_Quarkus - Sistema de Reservas",
+    "description": "Colección de pruebas para el sistema de reservas y disponibilidad de profesionales (evaluación final Quarkus - MitoCode).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "profesionalId", "value": "" },
+    { "key": "clienteId", "value": "" },
+    { "key": "reservaId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Profesional",
+      "item": [
+        {
+          "name": "Crear Profesional",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('profesionalId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Luis\",\n  \"apellidos\": \"Salazar\",\n  \"especialidad\": \"Psicologia\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/profesionales", "host": ["{{base_url}}"], "path": ["profesionales"] }
+          }
+        },
+        {
+          "name": "Obtener Profesional por Id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/profesionales/{{profesionalId}}",
+              "host": ["{{base_url}}"],
+              "path": ["profesionales", "{{profesionalId}}"]
+            }
+          }
+        },
+        {
+          "name": "Listar Profesionales (ordenados por reservas activas desc)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/profesionales", "host": ["{{base_url}}"], "path": ["profesionales"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cliente",
+      "item": [
+        {
+          "name": "Crear Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('clienteId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Ana\",\n  \"apellidos\": \"Torres\",\n  \"email\": \"ana.torres@mail.com\",\n  \"telefono\": \"999888777\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clientes", "host": ["{{base_url}}"], "path": ["clientes"] }
+          }
+        },
+        {
+          "name": "Obtener Cliente por Id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/clientes/{{clienteId}}",
+              "host": ["{{base_url}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "HorarioDisponible",
+      "item": [
+        {
+          "name": "Registrar Horario Disponible",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profesionalId\": \"{{profesionalId}}\",\n  \"fecha\": \"2026-07-01\",\n  \"horaInicio\": \"08:00:00\",\n  \"horaFin\": \"12:00:00\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/horarios-disponibles", "host": ["{{base_url}}"], "path": ["horarios-disponibles"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reserva",
+      "item": [
+        {
+          "name": "Crear Reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('reservaId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"profesionalId\": \"{{profesionalId}}\",\n  \"fecha\": \"2026-07-01\",\n  \"horaInicio\": \"08:00:00\",\n  \"horaFin\": \"09:00:00\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/reservas", "host": ["{{base_url}}"], "path": ["reservas"] }
+          }
+        },
+        {
+          "name": "Cancelar Reserva",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/reservas/{{reservaId}}/cancelar",
+              "host": ["{{base_url}}"],
+              "path": ["reservas", "{{reservaId}}", "cancelar"]
+            }
+          }
+        },
+        {
+          "name": "Listar Reservas Agrupadas por Fecha",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/reservas", "host": ["{{base_url}}"], "path": ["reservas"] }
+          }
+        }
+      ]
+    }
+  ]
+}
