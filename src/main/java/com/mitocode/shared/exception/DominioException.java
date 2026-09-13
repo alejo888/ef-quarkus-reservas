@@ -9,14 +9,14 @@ import jakarta.ws.rs.core.Response;
  */
 public abstract class DominioException extends RuntimeException {
 
-    private final Response.Status status;
+    private final Response.StatusType status;
 
-    protected DominioException(String message, Response.Status status) {
+    protected DominioException(String message, Response.StatusType status) {
         super(message);
         this.status = status;
     }
 
-    public Response.Status getStatus() {
+    public Response.StatusType getStatus() {
         return status;
     }
 }
