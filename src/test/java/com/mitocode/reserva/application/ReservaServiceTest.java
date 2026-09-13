@@ -146,6 +146,50 @@ class ReservaServiceTest {
                 .isInstanceOf(RecursoNoEncontradoException.class);
     }
 
+    @Test
+    void agruparPorFechaConReservasEnVariasFechasLasAgrupaCorrectamente() {
+        LocalDate otraFecha = LocalDate.of(2026, 5, 11);
+        horarioRepository.agregar(HorarioDisponible.crear(profesional.getId(), otraFecha,
+                new RangoHorario(LocalTime.of(8, 0), LocalTime.of(12, 0))));
+
+        Reserva reservaFecha1 = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+        Reserva reservaFecha2 = service
+                .crear(cliente.getId(), profesional.getId(), otraFecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+
+        Map<LocalDate, List<Reserva>> resultado = service.agruparPorFecha().await().indefinitely();
+
+        assertThat(resultado).containsOnlyKeys(fecha, otraFecha);
+        assertThat(resultado.get(fecha)).containsExactly(reservaFecha1);
+        assertThat(resultado.get(otraFecha)).containsExactly(reservaFecha2);
+    }
+
+    @Test
+    void agruparPorFechaConVariasReservasEnLaMismaFechaLasDevuelveTodas() {
+        horarioRepository.agregar(HorarioDisponible.crear(profesional.getId(), fecha,
+                new RangoHorario(LocalTime.of(13, 0), LocalTime.of(17, 0))));
+
+        Reserva primera = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+        Reserva segunda = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(14, 0), LocalTime.of(15, 0))
+                .await().indefinitely();
+
+        Map<LocalDate, List<Reserva>> resultado = service.agruparPorFecha().await().indefinitely();
+
+        assertThat(resultado.get(fecha)).containsExactlyInAnyOrder(primera, segunda);
+    }
+
+    @Test
+    void agruparPorFechaSinReservasDevuelveMapaVacio() {
+        Map<LocalDate, List<Reserva>> resultado = service.agruparPorFecha().await().indefinitely();
+
+        assertThat(resultado).isEmpty();
+    }
+
     private static class ClienteRepositoryFake implements ClienteRepository {
         private final Map<UUID, Cliente> datos = new HashMap<>();
 
@@ -181,6 +225,11 @@ class ReservaServiceTest {
         @Override
         public Uni<Profesional> buscarPorId(UUID id) {
             return Uni.createFrom().item(datos.get(id));
+        }
+
+        @Override
+        public Uni<List<Profesional>> buscarTodos() {
+            return Uni.createFrom().item(List.copyOf(datos.values()));
         }
     }
 
@@ -232,6 +281,11 @@ class ReservaServiceTest {
         @Override
         public Uni<Reserva> buscarPorId(UUID id) {
             return Uni.createFrom().item(datos.get(id));
+        }
+
+        @Override
+        public Uni<List<Reserva>> buscarTodas() {
+            return Uni.createFrom().item(List.copyOf(datos.values()));
         }
     }
 }

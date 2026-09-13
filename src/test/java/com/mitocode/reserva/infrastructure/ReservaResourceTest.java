@@ -106,6 +106,39 @@ class ReservaResourceTest {
         given().when().post("/reservas/" + reservaId + "/cancelar").then().statusCode(409);
     }
 
+    @Test
+    void deberiaAgruparReservasPorFechaAlListar() {
+        String profesionalId = crearProfesional();
+        String clienteId = crearCliente();
+        String fecha1 = "2026-08-01";
+        String fecha2 = "2026-08-02";
+        crearHorario(profesionalId, fecha1, "08:00:00", "12:00:00");
+        crearHorario(profesionalId, fecha2, "08:00:00", "12:00:00");
+
+        String reservaBody1 = """
+                {"clienteId":"%s","profesionalId":"%s","fecha":"%s","horaInicio":"09:00:00","horaFin":"10:00:00"}
+                """.formatted(clienteId, profesionalId, fecha1);
+        String reservaId1 = given().contentType(ContentType.JSON).body(reservaBody1)
+                .when().post("/reservas")
+                .then().statusCode(201)
+                .extract().path("id");
+
+        String reservaBody2 = """
+                {"clienteId":"%s","profesionalId":"%s","fecha":"%s","horaInicio":"09:00:00","horaFin":"10:00:00"}
+                """.formatted(clienteId, profesionalId, fecha2);
+        String reservaId2 = given().contentType(ContentType.JSON).body(reservaBody2)
+                .when().post("/reservas")
+                .then().statusCode(201)
+                .extract().path("id");
+
+        given()
+                .when().get("/reservas")
+                .then()
+                .statusCode(200)
+                .body("'%s'[0].id".formatted(fecha1), equalTo(reservaId1))
+                .body("'%s'[0].id".formatted(fecha2), equalTo(reservaId2));
+    }
+
     private String crearProfesional() {
         String body = """
                 {"nombres":"Luis","apellidos":"Salazar","especialidad":"Psicologia"}

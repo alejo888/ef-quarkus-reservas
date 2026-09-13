@@ -14,6 +14,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @Path("/profesionales")
@@ -38,5 +39,12 @@ public class ProfesionalResource {
     @WithSession
     public Uni<ProfesionalResponse> obtener(@PathParam("id") UUID id) {
         return service.obtenerPorId(id).map(ProfesionalResponse::from);
+    }
+
+    @GET
+    @WithSession
+    public Uni<List<ProfesionalConReservasActivasResponse>> listar() {
+        return service.listarOrdenadosPorReservasActivas()
+                .map(lista -> lista.stream().map(ProfesionalConReservasActivasResponse::from).toList());
     }
 }

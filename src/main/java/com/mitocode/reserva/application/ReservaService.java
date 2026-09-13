@@ -16,7 +16,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ReservaService {
@@ -54,6 +57,11 @@ public class ReservaService {
                 .onItem().ifNull().failWith(() -> new RecursoNoEncontradoException("Reserva", id))
                 .invoke(Reserva::cancelar)
                 .chain(reservaRepository::actualizar);
+    }
+
+    public Uni<Map<LocalDate, List<Reserva>>> agruparPorFecha() {
+        return reservaRepository.buscarTodas()
+                .map(reservas -> reservas.stream().collect(Collectors.groupingBy(Reserva::getFecha)));
     }
 
     private static void validarActivos(Cliente cliente, Profesional profesional) {

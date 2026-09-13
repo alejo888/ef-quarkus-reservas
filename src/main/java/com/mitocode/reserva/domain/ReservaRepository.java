@@ -20,4 +20,6 @@ public interface ReservaRepository {
 
     /** Emits {@code null} when no reserva exists with the given id. */
     Uni<Reserva> buscarPorId(UUID id);
+
+    Uni<List<Reserva>> buscarTodas();
 }

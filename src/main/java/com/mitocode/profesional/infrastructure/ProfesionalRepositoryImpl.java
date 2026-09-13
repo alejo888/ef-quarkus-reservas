@@ -6,6 +6,7 @@ import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -19,5 +20,10 @@ public class ProfesionalRepositoryImpl implements ProfesionalRepository, Panache
     @Override
     public Uni<Profesional> buscarPorId(UUID id) {
         return findById(id);
+    }
+
+    @Override
+    public Uni<List<Profesional>> buscarTodos() {
+        return listAll();
     }
 }

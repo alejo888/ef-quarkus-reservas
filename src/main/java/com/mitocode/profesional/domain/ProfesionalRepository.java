@@ -1,6 +1,7 @@
 package com.mitocode.profesional.domain;
 
 import io.smallrye.mutiny.Uni;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -13,4 +14,6 @@ public interface ProfesionalRepository {
 
     /** Emits {@code null} when no profesional exists with the given id. */
     Uni<Profesional> buscarPorId(UUID id);
+
+    Uni<List<Profesional>> buscarTodos();
 }

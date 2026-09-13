@@ -49,4 +49,9 @@ public class ReservaRepositoryImpl implements ReservaRepository, PanacheReposito
     public Uni<Reserva> buscarPorId(UUID id) {
         return findById(id);
     }
+
+    @Override
+    public Uni<List<Reserva>> buscarTodas() {
+        return listAll();
+    }
 }
