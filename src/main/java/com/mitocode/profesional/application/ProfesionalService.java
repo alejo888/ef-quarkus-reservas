@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 
 @ApplicationScoped
 public class ProfesionalService {
@@ -45,6 +46,7 @@ public class ProfesionalService {
                 .replaceWithVoid();
     }
 
+    @Timeout(2000)
     public Uni<List<ProfesionalConReservasActivas>> listarOrdenadosPorReservasActivas() {
         return repository.buscarTodos()
                 .chain(profesionales -> reservaRepository.buscarTodas()
