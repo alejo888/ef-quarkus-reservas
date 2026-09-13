@@ -22,4 +22,17 @@ public class ClienteService {
         return repository.buscarPorId(id)
                 .onItem().ifNull().failWith(() -> new RecursoNoEncontradoException("Cliente", id));
     }
+
+    public Uni<Cliente> actualizar(UUID id, String nombres, String apellidos, String email, String telefono) {
+        return obtenerPorId(id)
+                .invoke(cliente -> cliente.actualizarDatos(nombres, apellidos, email, telefono))
+                .chain(repository::actualizar);
+    }
+
+    public Uni<Void> eliminar(UUID id) {
+        return obtenerPorId(id)
+                .invoke(Cliente::desactivar)
+                .chain(repository::actualizar)
+                .replaceWithVoid();
+    }
 }

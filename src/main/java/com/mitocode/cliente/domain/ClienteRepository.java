@@ -12,6 +12,9 @@ public interface ClienteRepository {
     /** Fails with EmailDuplicadoException when the email is already taken. */
     Uni<Cliente> guardar(Cliente cliente);
 
+    /** Fails with EmailDuplicadoException when the email is already taken. */
+    Uni<Cliente> actualizar(Cliente cliente);
+
     /** Emits {@code null} when no cliente exists with the given id. */
     Uni<Cliente> buscarPorId(UUID id);
 }

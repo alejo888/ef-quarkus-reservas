@@ -6,8 +6,10 @@ import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -38,5 +40,21 @@ public class ClienteResource {
     @WithSession
     public Uni<ClienteResponse> obtener(@PathParam("id") UUID id) {
         return service.obtenerPorId(id).map(ClienteResponse::from);
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @WithSession
+    public Uni<ClienteResponse> actualizar(@PathParam("id") UUID id, @Valid ClienteRequest request) {
+        return service.actualizar(id, request.nombres(), request.apellidos(), request.email(), request.telefono())
+                .map(ClienteResponse::from);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @WithSession
+    public Uni<Response> eliminar(@PathParam("id") UUID id) {
+        return service.eliminar(id).map(ignored -> Response.noContent().build());
     }
 }

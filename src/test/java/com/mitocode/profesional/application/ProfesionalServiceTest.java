@@ -1,12 +1,14 @@
 package com.mitocode.profesional.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.mitocode.profesional.domain.Profesional;
 import com.mitocode.profesional.domain.ProfesionalRepository;
 import com.mitocode.reserva.domain.Reserva;
 import com.mitocode.reserva.domain.ReservaRepository;
 import com.mitocode.shared.domain.RangoHorario;
+import com.mitocode.shared.exception.RecursoNoEncontradoException;
 import io.smallrye.mutiny.Uni;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -93,8 +95,51 @@ class ProfesionalServiceTest {
         return Reserva.crear(UUID.randomUUID(), profesionalId, fecha, rango);
     }
 
+    @Test
+    void actualizarConDatosValidosActualizaYPersisteLosCambios() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+        profesionalRepository.agregar(profesional);
+
+        Profesional actualizado = service
+                .actualizar(profesional.getId(), "Carlos", "Mendez", "Nutricion")
+                .await().indefinitely();
+
+        assertThat(actualizado.getNombres()).isEqualTo("Carlos");
+        assertThat(actualizado.getApellidos()).isEqualTo("Mendez");
+        assertThat(actualizado.getEspecialidad()).isEqualTo("Nutricion");
+        assertThat(profesionalRepository.actualizaciones).contains(profesional.getId());
+    }
+
+    @Test
+    void actualizarConIdInexistenteLanzaRecursoNoEncontradoException() {
+        Uni<Profesional> uni = service.actualizar(UUID.randomUUID(), "Carlos", "Mendez", "Nutricion");
+
+        assertThatThrownBy(() -> uni.await().indefinitely())
+                .isInstanceOf(RecursoNoEncontradoException.class);
+    }
+
+    @Test
+    void eliminarDesactivaYPersisteElProfesional() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+        profesionalRepository.agregar(profesional);
+
+        service.eliminar(profesional.getId()).await().indefinitely();
+
+        assertThat(profesional.isEstadoActivo()).isFalse();
+        assertThat(profesionalRepository.actualizaciones).contains(profesional.getId());
+    }
+
+    @Test
+    void eliminarConIdInexistenteLanzaRecursoNoEncontradoException() {
+        Uni<Void> uni = service.eliminar(UUID.randomUUID());
+
+        assertThatThrownBy(() -> uni.await().indefinitely())
+                .isInstanceOf(RecursoNoEncontradoException.class);
+    }
+
     private static class ProfesionalRepositoryFake implements ProfesionalRepository {
         private final Map<UUID, Profesional> datos = new HashMap<>();
+        private final List<UUID> actualizaciones = new ArrayList<>();
 
         void agregar(Profesional profesional) {
             datos.put(profesional.getId(), profesional);
@@ -114,6 +159,13 @@ class ProfesionalServiceTest {
         @Override
         public Uni<List<Profesional>> buscarTodos() {
             return Uni.createFrom().item(List.copyOf(datos.values()));
+        }
+
+        @Override
+        public Uni<Profesional> actualizar(Profesional profesional) {
+            actualizaciones.add(profesional.getId());
+            datos.put(profesional.getId(), profesional);
+            return Uni.createFrom().item(profesional);
         }
     }
 

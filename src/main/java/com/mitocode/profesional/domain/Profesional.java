@@ -46,6 +46,12 @@ public class Profesional {
         return valor;
     }
 
+    public void actualizarDatos(String nombres, String apellidos, String especialidad) {
+        this.nombres = requireNoBlank(nombres, "nombres");
+        this.apellidos = requireNoBlank(apellidos, "apellidos");
+        this.especialidad = requireNoBlank(especialidad, "especialidad");
+    }
+
     public void activar() {
         this.estadoActivo = true;
     }

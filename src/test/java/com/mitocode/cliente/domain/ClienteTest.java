@@ -68,4 +68,32 @@ class ClienteTest {
 
         assertThat(cliente.isEstadoActivo()).isTrue();
     }
+
+    @Test
+    void actualizarDatosDeberiaReasignarLosCampos() {
+        Cliente cliente = Cliente.crear("Ana", "Torres", "ana.torres@mail.com", "999888777");
+
+        cliente.actualizarDatos("Maria", "Gomez", "maria.gomez@mail.com", "111222333");
+
+        assertThat(cliente.getNombres()).isEqualTo("Maria");
+        assertThat(cliente.getApellidos()).isEqualTo("Gomez");
+        assertThat(cliente.getEmail()).isEqualTo("maria.gomez@mail.com");
+        assertThat(cliente.getTelefono()).isEqualTo("111222333");
+    }
+
+    @Test
+    void actualizarDatosDeberiaRechazarNombresVacios() {
+        Cliente cliente = Cliente.crear("Ana", "Torres", "ana.torres@mail.com", "999888777");
+
+        assertThatThrownBy(() -> cliente.actualizarDatos(" ", "Gomez", "maria.gomez@mail.com", "111222333"))
+                .isInstanceOf(CampoRequeridoException.class);
+    }
+
+    @Test
+    void actualizarDatosDeberiaRechazarEmailConFormatoInvalido() {
+        Cliente cliente = Cliente.crear("Ana", "Torres", "ana.torres@mail.com", "999888777");
+
+        assertThatThrownBy(() -> cliente.actualizarDatos("Maria", "Gomez", "no-es-un-email", "111222333"))
+                .isInstanceOf(EmailInvalidoException.class);
+    }
 }

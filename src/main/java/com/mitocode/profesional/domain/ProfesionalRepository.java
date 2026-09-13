@@ -12,6 +12,8 @@ public interface ProfesionalRepository {
 
     Uni<Profesional> guardar(Profesional profesional);
 
+    Uni<Profesional> actualizar(Profesional profesional);
+
     /** Emits {@code null} when no profesional exists with the given id. */
     Uni<Profesional> buscarPorId(UUID id);
 

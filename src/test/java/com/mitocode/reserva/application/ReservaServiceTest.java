@@ -207,6 +207,12 @@ class ReservaServiceTest {
         public Uni<Cliente> buscarPorId(UUID id) {
             return Uni.createFrom().item(datos.get(id));
         }
+
+        @Override
+        public Uni<Cliente> actualizar(Cliente cliente) {
+            datos.put(cliente.getId(), cliente);
+            return Uni.createFrom().item(cliente);
+        }
     }
 
     private static class ProfesionalRepositoryFake implements ProfesionalRepository {
@@ -230,6 +236,12 @@ class ReservaServiceTest {
         @Override
         public Uni<List<Profesional>> buscarTodos() {
             return Uni.createFrom().item(List.copyOf(datos.values()));
+        }
+
+        @Override
+        public Uni<Profesional> actualizar(Profesional profesional) {
+            datos.put(profesional.getId(), profesional);
+            return Uni.createFrom().item(profesional);
         }
     }
 

@@ -93,6 +93,79 @@ class ProfesionalResourceTest {
         assertThat(idsDeInteresEnOrden).containsExactly(conDosReservasId, conUnaReservaId, sinReservasId);
     }
 
+    @Test
+    void deberiaActualizarUnProfesionalExistente() {
+        String id = crearProfesional("Luis", "Salazar");
+
+        String body = """
+                {"nombres":"Carlos","apellidos":"Mendez","especialidad":"Nutricion"}
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/profesionales/" + id)
+                .then()
+                .statusCode(200)
+                .body("nombres", equalTo("Carlos"))
+                .body("apellidos", equalTo("Mendez"))
+                .body("especialidad", equalTo("Nutricion"));
+    }
+
+    @Test
+    void deberiaDevolver404AlActualizarUnProfesionalInexistente() {
+        String body = """
+                {"nombres":"Carlos","apellidos":"Mendez","especialidad":"Nutricion"}
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/profesionales/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void deberiaRechazarActualizacionConDatosInvalidosCon400() {
+        String id = crearProfesional("Luis", "Salazar");
+
+        String body = """
+                {"nombres":"","apellidos":"Mendez","especialidad":"Nutricion"}
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/profesionales/" + id)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void deberiaEliminarUnProfesionalExistente() {
+        String id = crearProfesional("Luis", "Salazar");
+
+        given()
+                .when().delete("/profesionales/" + id)
+                .then()
+                .statusCode(204);
+
+        given()
+                .when().get("/profesionales/" + id)
+                .then()
+                .statusCode(200)
+                .body("estadoActivo", equalTo(false));
+    }
+
+    @Test
+    void deberiaDevolver404AlEliminarUnProfesionalInexistente() {
+        given()
+                .when().delete("/profesionales/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
+    }
+
     private String crearProfesional(String nombres, String apellidos) {
         String body = """
                 {"nombres":"%s","apellidos":"%s-%s","especialidad":"Psicologia"}

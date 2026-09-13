@@ -32,6 +32,19 @@ public class ProfesionalService {
                 .onItem().ifNull().failWith(() -> new RecursoNoEncontradoException("Profesional", id));
     }
 
+    public Uni<Profesional> actualizar(UUID id, String nombres, String apellidos, String especialidad) {
+        return obtenerPorId(id)
+                .invoke(profesional -> profesional.actualizarDatos(nombres, apellidos, especialidad))
+                .chain(repository::actualizar);
+    }
+
+    public Uni<Void> eliminar(UUID id) {
+        return obtenerPorId(id)
+                .invoke(Profesional::desactivar)
+                .chain(repository::actualizar)
+                .replaceWithVoid();
+    }
+
     public Uni<List<ProfesionalConReservasActivas>> listarOrdenadosPorReservasActivas() {
         return repository.buscarTodos()
                 .chain(profesionales -> reservaRepository.buscarTodas()

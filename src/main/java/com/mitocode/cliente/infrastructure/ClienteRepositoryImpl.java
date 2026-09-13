@@ -24,6 +24,13 @@ public class ClienteRepositoryImpl implements ClienteRepository, PanacheReposito
     }
 
     @Override
+    public Uni<Cliente> actualizar(Cliente cliente) {
+        return Panache.withTransaction(() -> Panache.getSession().chain(session -> session.merge(cliente)))
+                .onFailure(ClienteRepositoryImpl::esViolacionDeEmailUnico)
+                .transform(failure -> new EmailDuplicadoException(cliente.getEmail()));
+    }
+
+    @Override
     public Uni<Cliente> buscarPorId(UUID id) {
         return findById(id);
     }

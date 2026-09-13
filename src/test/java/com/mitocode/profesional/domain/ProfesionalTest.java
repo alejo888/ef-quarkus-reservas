@@ -55,4 +55,23 @@ class ProfesionalTest {
 
         assertThat(profesional.isEstadoActivo()).isTrue();
     }
+
+    @Test
+    void actualizarDatosDeberiaReasignarLosCampos() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+
+        profesional.actualizarDatos("Carlos", "Mendez", "Nutricion");
+
+        assertThat(profesional.getNombres()).isEqualTo("Carlos");
+        assertThat(profesional.getApellidos()).isEqualTo("Mendez");
+        assertThat(profesional.getEspecialidad()).isEqualTo("Nutricion");
+    }
+
+    @Test
+    void actualizarDatosDeberiaRechazarNombresVacios() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+
+        assertThatThrownBy(() -> profesional.actualizarDatos(" ", "Mendez", "Nutricion"))
+                .isInstanceOf(CampoRequeridoException.class);
+    }
 }

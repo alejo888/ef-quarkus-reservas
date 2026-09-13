@@ -59,6 +59,13 @@ public class Cliente {
         return email;
     }
 
+    public void actualizarDatos(String nombres, String apellidos, String email, String telefono) {
+        this.nombres = requireNoBlank(nombres, "nombres");
+        this.apellidos = requireNoBlank(apellidos, "apellidos");
+        this.email = requireValidEmail(email);
+        this.telefono = requireNoBlank(telefono, "telefono");
+    }
+
     public void activar() {
         this.estadoActivo = true;
     }

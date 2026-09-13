@@ -89,4 +89,91 @@ class ClienteResourceTest {
                 .when().post("/clientes")
                 .then().statusCode(409);
     }
+
+    @Test
+    void deberiaActualizarUnClienteExistente() {
+        String id = crearCliente();
+
+        String body = """
+                {"nombres":"Maria","apellidos":"Gomez","email":"maria.gomez.%s@mail.com","telefono":"111222333"}
+                """.formatted(UUID.randomUUID());
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/clientes/" + id)
+                .then()
+                .statusCode(200)
+                .body("nombres", equalTo("Maria"))
+                .body("apellidos", equalTo("Gomez"))
+                .body("telefono", equalTo("111222333"));
+    }
+
+    @Test
+    void deberiaDevolver404AlActualizarUnClienteInexistente() {
+        String body = """
+                {"nombres":"Maria","apellidos":"Gomez","email":"maria.gomez.%s@mail.com","telefono":"111222333"}
+                """.formatted(UUID.randomUUID());
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/clientes/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void deberiaRechazarActualizacionConDatosInvalidosCon400() {
+        String id = crearCliente();
+
+        String body = """
+                {"nombres":"","apellidos":"Gomez","email":"maria.gomez@mail.com","telefono":"111222333"}
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().put("/clientes/" + id)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void deberiaEliminarUnClienteExistente() {
+        String id = crearCliente();
+
+        given()
+                .when().delete("/clientes/" + id)
+                .then()
+                .statusCode(204);
+
+        given()
+                .when().get("/clientes/" + id)
+                .then()
+                .statusCode(200)
+                .body("estadoActivo", equalTo(false));
+    }
+
+    @Test
+    void deberiaDevolver404AlEliminarUnClienteInexistente() {
+        given()
+                .when().delete("/clientes/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
+    }
+
+    private String crearCliente() {
+        String body = """
+                {"nombres":"Ana","apellidos":"Torres","email":"ana.torres.%s@mail.com","telefono":"999888777"}
+                """.formatted(UUID.randomUUID());
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().post("/clientes")
+                .then()
+                .statusCode(201)
+                .extract().path("id");
+    }
 }

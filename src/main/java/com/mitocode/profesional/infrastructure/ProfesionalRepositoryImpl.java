@@ -18,6 +18,11 @@ public class ProfesionalRepositoryImpl implements ProfesionalRepository, Panache
     }
 
     @Override
+    public Uni<Profesional> actualizar(Profesional profesional) {
+        return Panache.withTransaction(() -> Panache.getSession().chain(session -> session.merge(profesional)));
+    }
+
+    @Override
     public Uni<Profesional> buscarPorId(UUID id) {
         return findById(id);
     }
