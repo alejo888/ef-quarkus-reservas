@@ -127,7 +127,9 @@ docker build -f src/main/docker/Dockerfile.native -t ef-quarkus-reservas-native 
   reservas activas, `GET /reservas` agrupado por fecha) se resuelven
   cargando las colecciones completas via Panache y procesando el conteo/
   agrupamiento en memoria con `Stream`/`Collectors.groupingBy`, tal como pide
-  el enunciado — no con una query SQL de agregacion.
+  el enunciado — no con una query SQL de agregacion. El orden desempata de
+  forma deterministica por apellidos/nombres/id cuando dos profesionales
+  tienen la misma cantidad de reservas activas.
 - **`@Timeout` de SmallRye Fault Tolerance protege una lectura
   (`ProfesionalService.listarOrdenadosPorReservasActivas`), nunca la
   escritura de `ReservaService.crear`**: para un metodo que retorna `Uni`,
@@ -137,7 +139,12 @@ docker build -f src/main/docker/Dockerfile.native -t ef-quarkus-reservas-native 
   al cliente mientras la reserva se crea igual en la base ("reserva
   fantasma"). Protegiendo una lectura, un timeout nunca deja estado a medio
   escribir. `TimeoutExceptionMapper` traduce el `TimeoutException` resultante
-  a un 503 explicito en vez de dejar que caiga al 500 generico de Quarkus.
+  a un 503 explicito (con log de advertencia) en vez de dejar que caiga al
+  500 generico de Quarkus. El valor del timeout no esta hardcodeado: se
+  externaliza en `application.properties` con la clave estandar de
+  MicroProfile Fault Tolerance
+  (`.../listarOrdenadosPorReservasActivas/Timeout/value`), overridable sin
+  recompilar.
 - **Logs estructurados**: `LoggingFilter` (JAX-RS `ContainerRequestFilter` +
   `ContainerResponseFilter`) loguea entrada y salida de cada request,
   adjuntando `httpMethod`/`httpPath`/`httpStatus`/`durationMs` via MDC antes
