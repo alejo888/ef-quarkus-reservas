@@ -94,6 +94,17 @@ class ProfesionalResourceTest {
     }
 
     @Test
+    void deberiaListarProfesionalesCorrectamenteConElTimeoutConfigurado() {
+        String id = crearProfesional("Timeout", "Feliz");
+
+        given()
+                .when().get("/profesionales")
+                .then()
+                .statusCode(200)
+                .body("find { it.id == '%s' }".formatted(id), notNullValue());
+    }
+
+    @Test
     void deberiaActualizarUnProfesionalExistente() {
         String id = crearProfesional("Luis", "Salazar");
 

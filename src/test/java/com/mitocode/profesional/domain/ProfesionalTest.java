@@ -74,4 +74,20 @@ class ProfesionalTest {
         assertThatThrownBy(() -> profesional.actualizarDatos(" ", "Mendez", "Nutricion"))
                 .isInstanceOf(CampoRequeridoException.class);
     }
+
+    @Test
+    void actualizarDatosDeberiaRechazarApellidosVacios() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+
+        assertThatThrownBy(() -> profesional.actualizarDatos("Carlos", " ", "Nutricion"))
+                .isInstanceOf(CampoRequeridoException.class);
+    }
+
+    @Test
+    void actualizarDatosDeberiaRechazarEspecialidadVacia() {
+        Profesional profesional = Profesional.crear("Luis", "Salazar", "Psicologia");
+
+        assertThatThrownBy(() -> profesional.actualizarDatos("Carlos", "Mendez", " "))
+                .isInstanceOf(CampoRequeridoException.class);
+    }
 }

@@ -96,4 +96,12 @@ class ClienteTest {
         assertThatThrownBy(() -> cliente.actualizarDatos("Maria", "Gomez", "no-es-un-email", "111222333"))
                 .isInstanceOf(EmailInvalidoException.class);
     }
+
+    @Test
+    void actualizarDatosDeberiaRechazarApellidosVacios() {
+        Cliente cliente = Cliente.crear("Ana", "Torres", "ana.torres@mail.com", "999888777");
+
+        assertThatThrownBy(() -> cliente.actualizarDatos("Maria", " ", "maria.gomez@mail.com", "111222333"))
+                .isInstanceOf(CampoRequeridoException.class);
+    }
 }

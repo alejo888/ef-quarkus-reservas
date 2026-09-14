@@ -140,6 +140,30 @@ class ClienteResourceTest {
     }
 
     @Test
+    void deberiaRechazarActualizacionConEmailDuplicadoCon409() {
+        String primerEmail = "primero.%s@mail.com".formatted(UUID.randomUUID());
+        String primerBody = """
+                {"nombres":"Ana","apellidos":"Torres","email":"%s","telefono":"999888777"}
+                """.formatted(primerEmail);
+        given().contentType(ContentType.JSON).body(primerBody)
+                .when().post("/clientes")
+                .then().statusCode(201);
+
+        String segundoId = crearCliente();
+
+        String bodyActualizacion = """
+                {"nombres":"Maria","apellidos":"Gomez","email":"%s","telefono":"111222333"}
+                """.formatted(primerEmail);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(bodyActualizacion)
+                .when().put("/clientes/" + segundoId)
+                .then()
+                .statusCode(409);
+    }
+
+    @Test
     void deberiaEliminarUnClienteExistente() {
         String id = crearCliente();
 

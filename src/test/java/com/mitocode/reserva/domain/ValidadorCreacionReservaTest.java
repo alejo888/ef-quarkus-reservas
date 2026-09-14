@@ -88,6 +88,28 @@ class ValidadorCreacionReservaTest {
                 .doesNotThrowAnyException();
     }
 
+    @Test
+    void noDeberiaLanzarExcepcionSiUnaReservaEmpiezaExactamenteCuandoOtraTermina() {
+        Reserva nueva = reserva(LocalTime.of(10, 0), LocalTime.of(11, 0));
+        HorarioDisponible horario = horario(LocalTime.of(8, 0), LocalTime.of(12, 0));
+        Reserva existente = Reserva.crear(UUID.randomUUID(), profesionalId, fecha,
+                new RangoHorario(LocalTime.of(9, 0), LocalTime.of(10, 0)));
+
+        assertThatCode(() -> ValidadorCreacionReserva.validar(nueva, List.of(horario), List.of(existente)))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void noDeberiaLanzarExcepcionSiUnaReservaTerminaExactamenteCuandoOtraEmpieza() {
+        Reserva nueva = reserva(LocalTime.of(8, 0), LocalTime.of(9, 0));
+        HorarioDisponible horario = horario(LocalTime.of(8, 0), LocalTime.of(12, 0));
+        Reserva existente = Reserva.crear(UUID.randomUUID(), profesionalId, fecha,
+                new RangoHorario(LocalTime.of(9, 0), LocalTime.of(10, 0)));
+
+        assertThatCode(() -> ValidadorCreacionReserva.validar(nueva, List.of(horario), List.of(existente)))
+                .doesNotThrowAnyException();
+    }
+
     private Reserva reserva(LocalTime inicio, LocalTime fin) {
         return Reserva.crear(clienteId, profesionalId, fecha, new RangoHorario(inicio, fin));
     }

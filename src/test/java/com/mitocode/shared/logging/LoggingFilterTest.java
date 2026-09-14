@@ -35,7 +35,11 @@ class LoggingFilterTest {
             }
         };
 
+        // Relies on this Quarkus version routing JBoss Logging through
+        // java.util.logging's LogManager, so attaching a java.util.logging
+        // Handler/Logger here actually observes LoggingFilter's log output.
         Logger julLogger = Logger.getLogger(LoggingFilter.class.getName());
+        java.util.logging.Level nivelOriginal = julLogger.getLevel();
         julLogger.addHandler(handler);
         julLogger.setLevel(java.util.logging.Level.ALL);
 
@@ -59,6 +63,7 @@ class LoggingFilterTest {
             assertThat(salidaRegistrada).isTrue();
         } finally {
             julLogger.removeHandler(handler);
+            julLogger.setLevel(nivelOriginal);
         }
     }
 }

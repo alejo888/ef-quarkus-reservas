@@ -139,6 +139,17 @@ class ReservaServiceTest {
     }
 
     @Test
+    void cancelarConFalloDePersistenciaEnActualizarPropagaLaExcepcion() {
+        Reserva reserva = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+        reservaRepository.fallarActualizarCon(new RuntimeException("fallo de persistencia"));
+
+        assertThatThrownBy(() -> service.cancelar(reserva.getId()).await().indefinitely())
+                .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
     void cancelarReservaInexistenteLanzaRecursoNoEncontradoException() {
         Uni<Reserva> uni = service.cancelar(UUID.randomUUID());
 
@@ -269,6 +280,11 @@ class ReservaServiceTest {
     private static class ReservaRepositoryFake implements ReservaRepository {
         private final Map<UUID, Reserva> datos = new HashMap<>();
         private final List<UUID> actualizaciones = new ArrayList<>();
+        private RuntimeException falloActualizar;
+
+        void fallarActualizarCon(RuntimeException fallo) {
+            this.falloActualizar = fallo;
+        }
 
         @Override
         public Uni<Reserva> guardar(Reserva reserva) {
@@ -278,6 +294,9 @@ class ReservaServiceTest {
 
         @Override
         public Uni<Reserva> actualizar(Reserva reserva) {
+            if (falloActualizar != null) {
+                return Uni.createFrom().failure(falloActualizar);
+            }
             actualizaciones.add(reserva.getId());
             datos.put(reserva.getId(), reserva);
             return Uni.createFrom().item(reserva);
