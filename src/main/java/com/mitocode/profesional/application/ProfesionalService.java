@@ -59,10 +59,17 @@ public class ProfesionalService {
                 .filter(Reserva::estaActiva)
                 .collect(Collectors.groupingBy(Reserva::getProfesionalId, Collectors.counting()));
 
+        Comparator<ProfesionalConReservasActivas> porReservasActivasDesc = Comparator
+                .comparingLong(ProfesionalConReservasActivas::reservasActivas).reversed();
+        Comparator<ProfesionalConReservasActivas> tiebreakDeterministico = Comparator
+                .comparing((ProfesionalConReservasActivas p) -> p.profesional().getApellidos())
+                .thenComparing(p -> p.profesional().getNombres())
+                .thenComparing(p -> p.profesional().getId());
+
         return profesionales.stream()
                 .map(profesional -> new ProfesionalConReservasActivas(profesional,
                         conteoPorProfesional.getOrDefault(profesional.getId(), 0L)))
-                .sorted(Comparator.comparingLong(ProfesionalConReservasActivas::reservasActivas).reversed())
+                .sorted(porReservasActivasDesc.thenComparing(tiebreakDeterministico))
                 .toList();
     }
 }

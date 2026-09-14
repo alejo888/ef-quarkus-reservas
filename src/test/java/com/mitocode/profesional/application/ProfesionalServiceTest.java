@@ -91,6 +91,23 @@ class ProfesionalServiceTest {
         assertThat(resultado.get(0).reservasActivas()).isEqualTo(1);
     }
 
+    @Test
+    void listarOrdenadosPorReservasActivasDesempataAlfabeticamenteCuandoElConteoEsIgual() {
+        Profesional zeta = Profesional.crear("Carlos", "Zeta", "Psicologia");
+        Profesional alfa = Profesional.crear("Ana", "Alfa", "Nutricion");
+        profesionalRepository.agregar(zeta);
+        profesionalRepository.agregar(alfa);
+
+        reservaRepository.agregar(reservaActivaPara(zeta.getId()));
+        reservaRepository.agregar(reservaActivaPara(alfa.getId()));
+
+        List<ProfesionalConReservasActivas> resultado = service.listarOrdenadosPorReservasActivas()
+                .await().indefinitely();
+
+        assertThat(resultado).extracting(p -> p.profesional().getId())
+                .containsExactly(alfa.getId(), zeta.getId());
+    }
+
     private Reserva reservaActivaPara(UUID profesionalId) {
         return Reserva.crear(UUID.randomUUID(), profesionalId, fecha, rango);
     }
