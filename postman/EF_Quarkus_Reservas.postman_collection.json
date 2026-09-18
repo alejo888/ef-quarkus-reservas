@@ -154,6 +154,17 @@
           }
         },
         {
+          "name": "Completar Reserva",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/reservas/{{reservaId}}/completar",
+              "host": ["{{base_url}}"],
+              "path": ["reservas", "{{reservaId}}", "completar"]
+            }
+          }
+        },
+        {
           "name": "Listar Reservas Agrupadas por Fecha",
           "request": {
             "method": "GET",
