@@ -70,6 +70,13 @@ public class Reserva {
         this.estado = EstadoReserva.CANCELADA;
     }
 
+    public void completar() {
+        if (estado != EstadoReserva.CREADA) {
+            throw new EstadoReservaInvalidoException(estado);
+        }
+        this.estado = EstadoReserva.COMPLETADA;
+    }
+
     public boolean estaActiva() {
         return estado == EstadoReserva.CREADA;
     }

@@ -79,4 +79,31 @@ class ReservaTest {
         reserva.cancelar();
         assertThat(reserva.estaActiva()).isFalse();
     }
+
+    @Test
+    void completarDeberiaCambiarEstadoACompletada() {
+        Reserva reserva = Reserva.crear(clienteId, profesionalId, fecha, rango);
+
+        reserva.completar();
+
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReserva.COMPLETADA);
+    }
+
+    @Test
+    void completarUnaReservaCanceladaDeberiaLanzarExcepcion() {
+        Reserva reserva = Reserva.crear(clienteId, profesionalId, fecha, rango);
+        reserva.cancelar();
+
+        assertThatThrownBy(reserva::completar)
+                .isInstanceOf(EstadoReservaInvalidoException.class);
+    }
+
+    @Test
+    void completarUnaReservaYaCompletadaDeberiaLanzarExcepcion() {
+        Reserva reserva = Reserva.crear(clienteId, profesionalId, fecha, rango);
+        reserva.completar();
+
+        assertThatThrownBy(reserva::completar)
+                .isInstanceOf(EstadoReservaInvalidoException.class);
+    }
 }

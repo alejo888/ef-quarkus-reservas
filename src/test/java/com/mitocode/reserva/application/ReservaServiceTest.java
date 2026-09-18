@@ -158,6 +158,37 @@ class ReservaServiceTest {
     }
 
     @Test
+    void completarReservaExistenteCambiaEstadoYActualiza() {
+        Reserva reserva = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+
+        Reserva completada = service.completar(reserva.getId()).await().indefinitely();
+
+        assertThat(completada.getEstado()).isEqualTo(EstadoReserva.COMPLETADA);
+        assertThat(reservaRepository.actualizaciones).contains(reserva.getId());
+    }
+
+    @Test
+    void completarConFalloDePersistenciaEnActualizarPropagaLaExcepcion() {
+        Reserva reserva = service
+                .crear(cliente.getId(), profesional.getId(), fecha, LocalTime.of(9, 0), LocalTime.of(10, 0))
+                .await().indefinitely();
+        reservaRepository.fallarActualizarCon(new RuntimeException("fallo de persistencia"));
+
+        assertThatThrownBy(() -> service.completar(reserva.getId()).await().indefinitely())
+                .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void completarReservaInexistenteLanzaRecursoNoEncontradoException() {
+        Uni<Reserva> uni = service.completar(UUID.randomUUID());
+
+        assertThatThrownBy(() -> uni.await().indefinitely())
+                .isInstanceOf(RecursoNoEncontradoException.class);
+    }
+
+    @Test
     void agruparPorFechaConReservasEnVariasFechasLasAgrupaCorrectamente() {
         LocalDate otraFecha = LocalDate.of(2026, 5, 11);
         horarioRepository.agregar(HorarioDisponible.crear(profesional.getId(), otraFecha,

@@ -46,6 +46,13 @@ public class ReservaResource {
         return service.cancelar(id).map(ReservaResponse::from);
     }
 
+    @POST
+    @Path("/{id}/completar")
+    @WithSession
+    public Uni<ReservaResponse> completar(@PathParam("id") UUID id) {
+        return service.completar(id).map(ReservaResponse::from);
+    }
+
     @GET
     @WithSession
     public Uni<Map<LocalDate, List<ReservaResponse>>> listarAgrupadasPorFecha() {

@@ -89,6 +89,67 @@ class ReservaResourceTest {
     }
 
     @Test
+    void deberiaCrearYLuegoCompletarUnaReserva() {
+        String profesionalId = crearProfesional();
+        String clienteId = crearCliente();
+        crearHorario(profesionalId, "2026-07-01", "08:00:00", "12:00:00");
+
+        String reservaBody = """
+                {"clienteId":"%s","profesionalId":"%s","fecha":"2026-07-01","horaInicio":"09:00:00","horaFin":"10:00:00"}
+                """.formatted(clienteId, profesionalId);
+
+        String reservaId = given()
+                .contentType(ContentType.JSON)
+                .body(reservaBody)
+                .when().post("/reservas")
+                .then()
+                .statusCode(201)
+                .extract().path("id");
+
+        given()
+                .when().post("/reservas/" + reservaId + "/completar")
+                .then()
+                .statusCode(200)
+                .body("estado", equalTo("COMPLETADA"));
+    }
+
+    @Test
+    void deberiaRechazar409SiSeCompletaUnaReservaYaCancelada() {
+        String profesionalId = crearProfesional();
+        String clienteId = crearCliente();
+        crearHorario(profesionalId, "2026-07-02", "08:00:00", "12:00:00");
+
+        String body = """
+                {"clienteId":"%s","profesionalId":"%s","fecha":"2026-07-02","horaInicio":"09:00:00","horaFin":"10:00:00"}
+                """.formatted(clienteId, profesionalId);
+        String reservaId = given().contentType(ContentType.JSON).body(body)
+                .when().post("/reservas")
+                .then().statusCode(201)
+                .extract().path("id");
+
+        given().when().post("/reservas/" + reservaId + "/cancelar").then().statusCode(200);
+        given().when().post("/reservas/" + reservaId + "/completar").then().statusCode(409);
+    }
+
+    @Test
+    void deberiaRechazar409SiSeCompletaDosVeces() {
+        String profesionalId = crearProfesional();
+        String clienteId = crearCliente();
+        crearHorario(profesionalId, "2026-07-03", "08:00:00", "12:00:00");
+
+        String body = """
+                {"clienteId":"%s","profesionalId":"%s","fecha":"2026-07-03","horaInicio":"09:00:00","horaFin":"10:00:00"}
+                """.formatted(clienteId, profesionalId);
+        String reservaId = given().contentType(ContentType.JSON).body(body)
+                .when().post("/reservas")
+                .then().statusCode(201)
+                .extract().path("id");
+
+        given().when().post("/reservas/" + reservaId + "/completar").then().statusCode(200);
+        given().when().post("/reservas/" + reservaId + "/completar").then().statusCode(409);
+    }
+
+    @Test
     void deberiaRechazar409SiSeCancelaDosVeces() {
         String profesionalId = crearProfesional();
         String clienteId = crearCliente();
