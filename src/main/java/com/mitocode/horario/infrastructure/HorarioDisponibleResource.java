@@ -12,10 +12,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 @Path("/horarios-disponibles")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Horarios disponibles", description = "Gestion de la disponibilidad horaria de los profesionales")
 public class HorarioDisponibleResource {
 
     @Inject
@@ -23,6 +27,10 @@ public class HorarioDisponibleResource {
 
     @POST
     @WithSession
+    @Operation(summary = "Crear horario disponible", description = "Registra un bloque de disponibilidad horaria para un profesional")
+    @APIResponse(responseCode = "201", description = "Horario disponible creado")
+    @APIResponse(responseCode = "400", description = "Datos de entrada invalidos")
+    @APIResponse(responseCode = "404", description = "Profesional no encontrado")
     public Uni<Response> crear(@Valid HorarioDisponibleRequest request) {
         return service.crear(request.profesionalId(), request.fecha(), request.horaInicio(), request.horaFin())
                 .map(HorarioDisponibleResponse::from)

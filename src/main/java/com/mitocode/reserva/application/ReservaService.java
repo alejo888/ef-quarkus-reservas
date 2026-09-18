@@ -59,6 +59,13 @@ public class ReservaService {
                 .chain(reservaRepository::actualizar);
     }
 
+    public Uni<Reserva> completar(UUID id) {
+        return reservaRepository.buscarPorId(id)
+                .onItem().ifNull().failWith(() -> new RecursoNoEncontradoException("Reserva", id))
+                .invoke(Reserva::completar)
+                .chain(reservaRepository::actualizar);
+    }
+
     public Uni<Map<LocalDate, List<Reserva>>> agruparPorFecha() {
         return reservaRepository.buscarTodas()
                 .map(reservas -> reservas.stream().collect(Collectors.groupingBy(Reserva::getFecha)));

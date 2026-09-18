@@ -5,9 +5,10 @@ centro de servicios (psicologia, mentorias, asesorias, tutorias). Trabajo final
 del curso de Quarkus de MitoCode.
 
 > **Estado**: completo respecto al enunciado. CRUD de Profesional y Cliente,
-> Horarios Disponibles con validacion de solapamiento, Reserva (crear/cancelar
-> con todas sus reglas de negocio), las 2 consultas de profesionales, coleccion
-> de Postman, logs estructurados y SmallRye Fault Tolerance.
+> Horarios Disponibles con validacion de solapamiento, Reserva (crear/cancelar/
+> completar con todas sus reglas de negocio), las 2 consultas de profesionales,
+> documentacion OpenAPI (`@Tag`/`@Operation`/`@APIResponse` en los 4 recursos),
+> coleccion de Postman, logs estructurados y SmallRye Fault Tolerance.
 
 ## Stack
 
@@ -150,3 +151,9 @@ docker build -f src/main/docker/Dockerfile.native -t ef-quarkus-reservas-native 
   adjuntando `httpMethod`/`httpPath`/`httpStatus`/`durationMs` via MDC antes
   de la linea de salida — Quarkus los serializa como JSON estructurado en
   produccion (`quarkus.log.console.json=true`).
+- **`COMPLETADA` se alcanza via endpoint manual** (`POST
+  /reservas/{id}/completar`), simetrico a `cancelar`: transicion de dominio
+  `CREADA → COMPLETADA` unicamente, misma `EstadoReservaInvalidoException` si
+  el estado actual no es `CREADA`. Sin scheduler ni logica temporal — el
+  enunciado no exige que la transicion sea automatica, y agregar un job solo
+  para esto habria sido alcance no pedido.
